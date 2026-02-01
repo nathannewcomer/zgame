@@ -1,6 +1,7 @@
 const std = @import("std");
 const zgame = @import("zgame");
 const math = @import("math.zig");
+const geometry = @import("geometry.zig");
 const sdl = @cImport({
     @cInclude("SDL3/SDL.h");
 });
@@ -23,30 +24,30 @@ pub fn main() !void {
     var renderer: ?*sdl.SDL_Renderer = null;
 
     // Unit cube
-    const cube_mesh = [12]math.Triangle{
+    const cube_mesh = [_]geometry.Triangle{
         // South
-        .{ .a = .{ .x = 0.0, .y = 0.0, .z = 0.0 }, .b = .{ .x = 0.0, .y = 1.0, .z = 0.0 }, .c = .{ .x = 1.0, .y = 1.0, .z = 0.0 } },
-        .{ .a = .{ .x = 0.0, .y = 0.0, .z = 0.0 }, .b = .{ .x = 1.0, .y = 1.0, .z = 0.0 }, .c = .{ .x = 1.0, .y = 0.0, .z = 0.0 } },
+        .{ .p = .{ .{ .x = 0.0, .y = 0.0, .z = 0.0 }, .{ .x = 0.0, .y = 1.0, .z = 0.0 }, .{ .x = 1.0, .y = 1.0, .z = 0.0 } } },
+        .{ .p = .{ .{ .x = 0.0, .y = 0.0, .z = 0.0 }, .{ .x = 1.0, .y = 1.0, .z = 0.0 }, .{ .x = 1.0, .y = 0.0, .z = 0.0 } } },
 
         // East
-        .{ .a = .{ .x = 1.0, .y = 0.0, .z = 0.0 }, .b = .{ .x = 1.0, .y = 1.0, .z = 0.0 }, .c = .{ .x = 1.0, .y = 1.0, .z = 1.0 } },
-        .{ .a = .{ .x = 1.0, .y = 0.0, .z = 0.0 }, .b = .{ .x = 1.0, .y = 1.0, .z = 1.0 }, .c = .{ .x = 1.0, .y = 0.0, .z = 1.0 } },
+        .{ .p = .{ .{ .x = 1.0, .y = 0.0, .z = 0.0 }, .{ .x = 1.0, .y = 1.0, .z = 0.0 }, .{ .x = 1.0, .y = 1.0, .z = 1.0 } } },
+        .{ .p = .{ .{ .x = 1.0, .y = 0.0, .z = 0.0 }, .{ .x = 1.0, .y = 1.0, .z = 1.0 }, .{ .x = 1.0, .y = 0.0, .z = 1.0 } } },
 
         // Noth
-        .{ .a = .{ .x = 1.0, .y = 0.0, .z = 1.0 }, .b = .{ .x = 1.0, .y = 1.0, .z = 1.0 }, .c = .{ .x = 0.0, .y = 1.0, .z = 1.0 } },
-        .{ .a = .{ .x = 1.0, .y = 0.0, .z = 1.0 }, .b = .{ .x = 0.0, .y = 1.0, .z = 1.0 }, .c = .{ .x = 0.0, .y = 0.0, .z = 1.0 } },
+        .{ .p = .{ .{ .x = 1.0, .y = 0.0, .z = 1.0 }, .{ .x = 1.0, .y = 1.0, .z = 1.0 }, .{ .x = 0.0, .y = 1.0, .z = 1.0 } } },
+        .{ .p = .{ .{ .x = 1.0, .y = 0.0, .z = 1.0 }, .{ .x = 0.0, .y = 1.0, .z = 1.0 }, .{ .x = 0.0, .y = 0.0, .z = 1.0 } } },
 
         // West
-        .{ .a = .{ .x = 0.0, .y = 0.0, .z = 1.0 }, .b = .{ .x = 0.0, .y = 1.0, .z = 1.0 }, .c = .{ .x = 0.0, .y = 1.0, .z = 0.0 } },
-        .{ .a = .{ .x = 0.0, .y = 0.0, .z = 1.0 }, .b = .{ .x = 0.0, .y = 1.0, .z = 0.0 }, .c = .{ .x = 0.0, .y = 0.0, .z = 0.0 } },
+        .{ .p = .{ .{ .x = 0.0, .y = 0.0, .z = 1.0 }, .{ .x = 0.0, .y = 1.0, .z = 1.0 }, .{ .x = 0.0, .y = 1.0, .z = 0.0 } } },
+        .{ .p = .{ .{ .x = 0.0, .y = 0.0, .z = 1.0 }, .{ .x = 0.0, .y = 1.0, .z = 0.0 }, .{ .x = 0.0, .y = 0.0, .z = 0.0 } } },
 
         // Top
-        .{ .a = .{ .x = 0.0, .y = 1.0, .z = 0.0 }, .b = .{ .x = 0.0, .y = 1.0, .z = 1.0 }, .c = .{ .x = 1.0, .y = 1.0, .z = 1.0 } },
-        .{ .a = .{ .x = 0.0, .y = 1.0, .z = 0.0 }, .b = .{ .x = 1.0, .y = 1.0, .z = 1.0 }, .c = .{ .x = 1.0, .y = 1.0, .z = 0.0 } },
+        .{ .p = .{ .{ .x = 0.0, .y = 1.0, .z = 0.0 }, .{ .x = 0.0, .y = 1.0, .z = 1.0 }, .{ .x = 1.0, .y = 1.0, .z = 1.0 } } },
+        .{ .p = .{ .{ .x = 0.0, .y = 1.0, .z = 0.0 }, .{ .x = 1.0, .y = 1.0, .z = 1.0 }, .{ .x = 1.0, .y = 1.0, .z = 0.0 } } },
 
         // Bottom
-        .{ .a = .{ .x = 1.0, .y = 0.0, .z = 1.0 }, .b = .{ .x = 0.0, .y = 0.0, .z = 1.0 }, .c = .{ .x = 0.0, .y = 0.0, .z = 0.0 } },
-        .{ .a = .{ .x = 1.0, .y = 0.0, .z = 1.0 }, .b = .{ .x = 0.0, .y = 0.0, .z = 0.0 }, .c = .{ .x = 1.0, .y = 0.0, .z = 0.0 } },
+        .{ .p = .{ .{ .x = 1.0, .y = 0.0, .z = 1.0 }, .{ .x = 0.0, .y = 0.0, .z = 1.0 }, .{ .x = 0.0, .y = 0.0, .z = 0.0 } } },
+        .{ .p = .{ .{ .x = 1.0, .y = 0.0, .z = 1.0 }, .{ .x = 0.0, .y = 0.0, .z = 0.0 }, .{ .x = 1.0, .y = 0.0, .z = 0.0 } } },
     };
 
     if (!sdl.SDL_Init(sdl.SDL_INIT_VIDEO)) {
@@ -106,54 +107,44 @@ pub fn main() !void {
 
         for (cube_mesh) |tri| {
             // Rotate in Z axis
-            var tri_rotated_z: math.Triangle = .{ .a = .{ .x = 0, .y = 0, .z = 0 }, .b = .{ .x = 0, .y = 0, .z = 0 }, .c = .{ .x = 0, .y = 0, .z = 0 } };
-            math.multiply_matrix_vector(tri.a, &(tri_rotated_z.a), rot_z_matrix);
-            math.multiply_matrix_vector(tri.b, &(tri_rotated_z.b), rot_z_matrix);
-            math.multiply_matrix_vector(tri.c, &(tri_rotated_z.c), rot_z_matrix);
+            const tri_rotated_z = geometry.Triangle{ .p = .{ math.multiply_matrix_vector(tri.p[0], rot_z_matrix), math.multiply_matrix_vector(tri.p[1], rot_z_matrix), math.multiply_matrix_vector(tri.p[2], rot_z_matrix) } };
 
             // Rotate in X axis
-            var tri_rotated_xz: math.Triangle = .{ .a = .{ .x = 0, .y = 0, .z = 0 }, .b = .{ .x = 0, .y = 0, .z = 0 }, .c = .{ .x = 0, .y = 0, .z = 0 } };
-            math.multiply_matrix_vector(tri_rotated_z.a, &(tri_rotated_xz.a), rot_x_matrix);
-            math.multiply_matrix_vector(tri_rotated_z.b, &(tri_rotated_xz.b), rot_x_matrix);
-            math.multiply_matrix_vector(tri_rotated_z.c, &(tri_rotated_xz.c), rot_x_matrix);
+            const tri_rotated_xz: geometry.Triangle = .{ .p = .{ math.multiply_matrix_vector(tri_rotated_z.p[0], rot_x_matrix), math.multiply_matrix_vector(tri_rotated_z.p[1], rot_x_matrix), math.multiply_matrix_vector(tri_rotated_z.p[2], rot_x_matrix) } };
 
             // Translate triangles
-            const tri_translated: math.Triangle = .{
-                .a = .{ .x = tri_rotated_xz.a.x, .y = tri_rotated_xz.a.y, .z = tri_rotated_xz.a.z + 3.0 },
-                .b = .{ .x = tri_rotated_xz.b.x, .y = tri_rotated_xz.b.y, .z = tri_rotated_xz.b.z + 3.0 },
-                .c = .{ .x = tri_rotated_xz.c.x, .y = tri_rotated_xz.c.y, .z = tri_rotated_xz.c.z + 3.0 },
-            };
+            const tri_translated: geometry.Triangle = .{ .p = .{
+                .{ .x = tri_rotated_xz.p[0].x, .y = tri_rotated_xz.p[0].y, .z = tri_rotated_xz.p[0].z + 3.0 },
+                .{ .x = tri_rotated_xz.p[1].x, .y = tri_rotated_xz.p[1].y, .z = tri_rotated_xz.p[1].z + 3.0 },
+                .{ .x = tri_rotated_xz.p[2].x, .y = tri_rotated_xz.p[2].y, .z = tri_rotated_xz.p[2].z + 3.0 },
+            } };
 
             // Project triangles in 3D space
-            var tri_projected: math.Triangle = .{ .a = .{ .x = 0, .y = 0, .z = 0 }, .b = .{ .x = 0, .y = 0, .z = 0 }, .c = .{ .x = 0, .y = 0, .z = 0 } };
-
-            math.multiply_matrix_vector(tri_translated.a, &(tri_projected.a), proj_matrix);
-            math.multiply_matrix_vector(tri_translated.b, &(tri_projected.b), proj_matrix);
-            math.multiply_matrix_vector(tri_translated.c, &(tri_projected.c), proj_matrix);
+            var tri_projected: geometry.Triangle = .{ .p = .{ math.multiply_matrix_vector(tri_translated.p[0], proj_matrix), math.multiply_matrix_vector(tri_translated.p[1], proj_matrix), math.multiply_matrix_vector(tri_translated.p[2], proj_matrix) } };
 
             // Scale into view
-            tri_projected.a.x += 1.0;
-            tri_projected.a.y += 1.0;
+            tri_projected.p[0].x += 1.0;
+            tri_projected.p[0].y += 1.0;
 
-            tri_projected.b.x += 1.0;
-            tri_projected.b.y += 1.0;
+            tri_projected.p[1].x += 1.0;
+            tri_projected.p[1].y += 1.0;
 
-            tri_projected.c.x += 1.0;
-            tri_projected.c.y += 1.0;
+            tri_projected.p[2].x += 1.0;
+            tri_projected.p[2].y += 1.0;
 
-            tri_projected.a.x *= 0.5 * @as(f32, screen_width);
-            tri_projected.a.y *= 0.5 * @as(f32, screen_height);
+            tri_projected.p[0].x *= 0.5 * @as(f32, screen_width);
+            tri_projected.p[0].y *= 0.5 * @as(f32, screen_height);
 
-            tri_projected.b.x *= 0.5 * @as(f32, screen_width);
-            tri_projected.b.y *= 0.5 * @as(f32, screen_height);
+            tri_projected.p[1].x *= 0.5 * @as(f32, screen_width);
+            tri_projected.p[1].y *= 0.5 * @as(f32, screen_height);
 
-            tri_projected.c.x *= 0.5 * @as(f32, screen_width);
-            tri_projected.c.y *= 0.5 * @as(f32, screen_height);
+            tri_projected.p[2].x *= 0.5 * @as(f32, screen_width);
+            tri_projected.p[2].y *= 0.5 * @as(f32, screen_height);
 
             // Draw projected triangles
-            _ = sdl.SDL_RenderLine(renderer, tri_projected.a.x, tri_projected.a.y, tri_projected.b.x, tri_projected.b.y);
-            _ = sdl.SDL_RenderLine(renderer, tri_projected.b.x, tri_projected.b.y, tri_projected.c.x, tri_projected.c.y);
-            _ = sdl.SDL_RenderLine(renderer, tri_projected.c.x, tri_projected.c.y, tri_projected.a.x, tri_projected.a.y);
+            _ = sdl.SDL_RenderLine(renderer, tri_projected.p[0].x, tri_projected.p[0].y, tri_projected.p[1].x, tri_projected.p[1].y);
+            _ = sdl.SDL_RenderLine(renderer, tri_projected.p[1].x, tri_projected.p[1].y, tri_projected.p[2].x, tri_projected.p[2].y);
+            _ = sdl.SDL_RenderLine(renderer, tri_projected.p[2].x, tri_projected.p[2].y, tri_projected.p[0].x, tri_projected.p[0].y);
         }
 
         // Render to screen

@@ -23,12 +23,14 @@ pub fn create_projection(aspect_ratio: f32, fov_rad: f32, near: f32, far: f32) M
     return proj_matrix;
 }
 
-pub fn multiply_matrix_vector(i: Point, o: *Point, m: Matrix4x4) void {
+pub fn multiply_matrix_vector(i: Point, m: Matrix4x4) Point {
     // 1. Multiply the point (with implicit w = 1.0) by the matrix
     const x = i.x * m[0][0] + i.y * m[1][0] + i.z * m[2][0] + 1.0 * m[3][0];
     const y = i.x * m[0][1] + i.y * m[1][1] + i.z * m[2][1] + 1.0 * m[3][1];
     const z = i.x * m[0][2] + i.y * m[1][2] + i.z * m[2][2] + 1.0 * m[3][2];
     const w = i.x * m[0][3] + i.y * m[1][3] + i.z * m[2][3] + 1.0 * m[3][3];
+
+    var o = Point{ .x = 0, .y = 0, .z = 0 };
 
     // 2. Perspective Divide
     // If w is 0, we avoid division by zero (point is usually at the camera origin)
@@ -41,6 +43,8 @@ pub fn multiply_matrix_vector(i: Point, o: *Point, m: Matrix4x4) void {
         o.y = y;
         o.z = z;
     }
+
+    return o;
 }
 
 test "multiply_matrix_vector: identity matrix" {
