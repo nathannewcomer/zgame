@@ -106,42 +106,28 @@ pub fn main() !void {
         for (cube_mesh) |tri| {
             // Rotate in Z axis
             const tri_rotated_z = tri.matrixMultiply(rot_z_matrix);
-            //const tri_rotated_z = geometry.Triangle{ .p = .{ math.multiplyMatrixVector(tri.p[0], rot_z_matrix), math.multiplyMatrixVector(tri.p[1], rot_z_matrix), math.multiplyMatrixVector(tri.p[2], rot_z_matrix) } };
 
             // Rotate in X axis
-            //const tri_rotated_xz: geometry.Triangle = .{ .p = .{ math.multiplyMatrixVector(tri_rotated_z.p[0], rot_x_matrix), math.multiplyMatrixVector(tri_rotated_z.p[1], rot_x_matrix), math.multiplyMatrixVector(tri_rotated_z.p[2], rot_x_matrix) } };
             var tri_rotated_xz = tri_rotated_z.matrixMultiply(rot_x_matrix);
 
             // Translate triangles
-            // const tri_translated: geometry.Triangle = .{ .p = .{
-            //     .{ .x = tri_rotated_xz.p[0].x, .y = tri_rotated_xz.p[0].y, .z = tri_rotated_xz.p[0].z + 3.0 },
-            //     .{ .x = tri_rotated_xz.p[1].x, .y = tri_rotated_xz.p[1].y, .z = tri_rotated_xz.p[1].z + 3.0 },
-            //     .{ .x = tri_rotated_xz.p[2].x, .y = tri_rotated_xz.p[2].y, .z = tri_rotated_xz.p[2].z + 3.0 },
-            // } };
             tri_rotated_xz.translate(0, 0, 3.0);
 
-            // Project triangles in 3D space
-            //var tri_projected: geometry.Triangle = .{ .p = .{ math.multiplyMatrixVector(tri_translated.p[0], proj_matrix), math.multiplyMatrixVector(tri_translated.p[1], proj_matrix), math.multiplyMatrixVector(tri_translated.p[2], proj_matrix) } };
-            var tri_projected = tri_rotated_xz.matrixMultiply(proj_matrix);
+            const normal = tri_rotated_xz.calculateNormal();
 
-            // Scale into view
-            tri_projected.translate(1, 1, 0);
+            if (normal[2] < 0.0) {
+                // Project triangles in 3D space
+                var tri_projected = tri_rotated_xz.matrixMultiply(proj_matrix);
 
-            tri_projected.multiply(0.5 * @as(f32, screen_width), 0.5 * @as(f32, screen_height), 1.0);
+                // Scale into view
+                tri_projected.translate(1, 1, 0);
+                tri_projected.multiply(0.5 * @as(f32, screen_width), 0.5 * @as(f32, screen_height), 1.0);
 
-            // tri_projected.p[0][0] *= 0.5 * @as(f32, screen_width);
-            // tri_projected.p[0][1] *= 0.5 * @as(f32, screen_height);
-
-            // tri_projected.p[1][0] *= 0.5 * @as(f32, screen_width);
-            // tri_projected.p[1][1] *= 0.5 * @as(f32, screen_height);
-
-            // tri_projected.p[2][0] *= 0.5 * @as(f32, screen_width);
-            // tri_projected.p[2][1] *= 0.5 * @as(f32, screen_height);
-
-            // Draw projected triangles
-            _ = sdl.SDL_RenderLine(renderer, tri_projected.p[0][0], tri_projected.p[0][1], tri_projected.p[1][0], tri_projected.p[1][1]);
-            _ = sdl.SDL_RenderLine(renderer, tri_projected.p[1][0], tri_projected.p[1][1], tri_projected.p[2][0], tri_projected.p[2][1]);
-            _ = sdl.SDL_RenderLine(renderer, tri_projected.p[2][0], tri_projected.p[2][1], tri_projected.p[0][0], tri_projected.p[0][1]);
+                // Draw projected triangles
+                _ = sdl.SDL_RenderLine(renderer, tri_projected.p[0][0], tri_projected.p[0][1], tri_projected.p[1][0], tri_projected.p[1][1]);
+                _ = sdl.SDL_RenderLine(renderer, tri_projected.p[1][0], tri_projected.p[1][1], tri_projected.p[2][0], tri_projected.p[2][1]);
+                _ = sdl.SDL_RenderLine(renderer, tri_projected.p[2][0], tri_projected.p[2][1], tri_projected.p[0][0], tri_projected.p[0][1]);
+            }
         }
 
         // Render to screen

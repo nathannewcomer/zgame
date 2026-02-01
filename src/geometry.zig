@@ -13,19 +13,63 @@ pub const Triangle = struct {
     }
 
     pub fn translate(self: *Triangle, x: f32, y: f32, z: f32) void {
-        for (&(self.p)) |*vec| {
-            vec[0] += x;
-            vec[1] += y;
-            vec[2] += z;
-        }
+        self.p[0][0] += x;
+        self.p[0][1] += y;
+        self.p[0][2] += z;
+
+        self.p[1][0] += x;
+        self.p[1][1] += y;
+        self.p[1][2] += z;
+
+        self.p[2][0] += x;
+        self.p[2][1] += y;
+        self.p[2][2] += z;
     }
 
     pub fn multiply(self: *Triangle, x: f32, y: f32, z: f32) void {
-        for (&(self.p)) |*vec| {
-            vec[0] *= x;
-            vec[1] *= y;
-            vec[2] *= z;
-        }
+        self.p[0][0] *= x;
+        self.p[0][1] *= y;
+        self.p[0][2] *= z;
+
+        self.p[1][0] *= x;
+        self.p[1][1] *= y;
+        self.p[1][2] *= z;
+
+        self.p[2][0] *= x;
+        self.p[2][1] *= y;
+        self.p[2][2] *= z;
+    }
+
+    pub fn calculateNormal(self: Triangle) math.Vec4 {
+        // FIX: Use separate indices for the vertices
+        const v1 = self.p[0];
+        const v2 = self.p[1];
+        const v3 = self.p[2];
+
+        // Calculate edge vectors
+        const edge1 = v2 - v1;
+        const edge2 = v3 - v1;
+
+        // Cross product using shuffling
+        const mask1: @Vector(4, i32) = .{ 1, 2, 0, 3 };
+        const mask2: @Vector(4, i32) = .{ 2, 0, 1, 3 };
+
+        var res = @shuffle(f32, edge1, undefined, mask1) * @shuffle(f32, edge2, undefined, mask2) -
+            @shuffle(f32, edge1, undefined, mask2) * @shuffle(f32, edge2, undefined, mask1);
+
+        // Force the W component to 0 for a direction vector
+        res[3] = 0;
+
+        // Normalize
+        const squared = res * res;
+        const sum = squared[0] + squared[1] + squared[2];
+
+        // FIX: Return using anonymous list literal or @splat
+        if (sum < 1e-12) return .{ 0, 0, 0, 0 };
+
+        const inv_len = 1.0 / @sqrt(sum);
+
+        return res * @as(math.Vec4, @splat(inv_len));
     }
 };
 
