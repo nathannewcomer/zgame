@@ -6,8 +6,6 @@ const sdl = @cImport({
 
 pub const Point = struct { x: f32, y: f32, z: f32 };
 
-pub const Triangle = struct { a: Point, b: Point, c: Point };
-
 pub const Matrix4x4 = [4][4]f32;
 
 pub fn create_projection(aspect_ratio: f32, fov_rad: f32, near: f32, far: f32) Matrix4x4 {
