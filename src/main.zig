@@ -18,8 +18,6 @@ pub fn main() !void {
 
     const proj_matrix = math.createProjection(aspect_ratio, fov_rad, near, far);
 
-    var f_theta: f32 = 0;
-
     var window: ?*sdl.SDL_Window = null;
     var renderer: ?*sdl.SDL_Renderer = null;
 
@@ -66,11 +64,18 @@ pub fn main() !void {
 
     _ = sdl.SDL_SetRenderLogicalPresentation(renderer, screen_width, screen_height, sdl.SDL_LOGICAL_PRESENTATION_LETTERBOX);
 
+    var last_time: u64 = sdl.SDL_GetTicks();
+    var f_theta: f32 = 0;
     var e: sdl.SDL_Event = undefined;
     var quit: bool = false;
 
     // Main loop
     while (!quit) {
+        // Calculate delta time
+        const current_time = sdl.SDL_GetTicks();
+        const delta_time = @as(f32, @floatFromInt(current_time - last_time)) / 1000.0;
+        last_time = current_time;
+
         // Handle events
         while (sdl.SDL_PollEvent(&e)) {
             if (e.type == sdl.SDL_EVENT_QUIT) {
@@ -86,7 +91,7 @@ pub fn main() !void {
         _ = sdl.SDL_SetRenderDrawColor(renderer, 255, 255, 255, sdl.SDL_ALPHA_OPAQUE);
 
         // rotation matricies
-        f_theta += 1.0 * (1.0 / 30000.0);
+        f_theta += 1.0 * delta_time;
         var rot_z_matrix: math.Matrix4x4 = std.mem.zeroes(math.Matrix4x4);
         rot_z_matrix.cols[0][0] = @cos(f_theta);
         rot_z_matrix.cols[1][0] = @sin(f_theta);
