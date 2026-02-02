@@ -27,36 +27,32 @@ pub const Matrix4x4 = struct {
     }
 };
 
-pub fn calculateNormal(v1: Vec4, v2: Vec4, v3: Vec4) Vec4 {
-    // Calculate edge vectors
-    const edge1 = v2 - v1;
-    const edge2 = v3 - v1;
-
-    // Cross product using shuffling
-    // (a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x)
-    const res = @shuffle(f32, edge1, undefined, .{ 1, 2, 0, 3 }) * @shuffle(f32, edge2, undefined, .{ 2, 0, 1, 3 }) -
-        @shuffle(f32, edge1, undefined, .{ 2, 0, 1, 3 }) * @shuffle(f32, edge2, undefined, .{ 1, 2, 0, 3 });
-
-    // Normalize
-    const squared = res * res;
-    const sum = squared[0] + squared[1] + squared[2];
-
-    if (sum < 1e-12) return @Vector(4, f32){ 0, 0, 0, 0 };
-
-    const inv_len = 1.0 / @sqrt(sum);
-
-    // Splat to vector and multiply
-    return res * @as(Vec4, @splat(inv_len));
-}
-
 pub fn createProjection(aspect_ratio: f32, fov_rad: f32, near: f32, far: f32) Matrix4x4 {
-    var proj_matrix: Matrix4x4 = .{ .cols = std.mem.zeroes([4]Vec4) };
+    var proj_matrix = Matrix4x4{
+        .cols = .{
+            @splat(0.0),
+            @splat(0.0),
+            @splat(0.0),
+            @splat(0.0),
+        },
+    };
 
-    proj_matrix.cols[0][0] = fov_rad / aspect_ratio;
-    proj_matrix.cols[1][1] = fov_rad;
+    // f = cotangent(fov / 2)
+    const f = 1.0 / @tan(fov_rad * 0.5);
+
+    // Column 0
+    proj_matrix.cols[0][0] = f / aspect_ratio;
+
+    // Column 1
+    proj_matrix.cols[1][1] = f;
+
+    // Column 2 (Z-axis basis)
+    // Maps Z to [0, 1] range
     proj_matrix.cols[2][2] = far / (far - near);
-    proj_matrix.cols[2][3] = (-far * near) / (far - near);
-    proj_matrix.cols[3][2] = 1.0;
+    proj_matrix.cols[2][3] = 1.0; // This is the 'W' divide coefficient
+
+    // Column 3 (W/Translation basis)
+    proj_matrix.cols[3][2] = -(far * near) / (far - near);
     proj_matrix.cols[3][3] = 0.0;
 
     return proj_matrix;

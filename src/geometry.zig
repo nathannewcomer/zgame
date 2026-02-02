@@ -13,31 +13,28 @@ pub const Triangle = struct {
     }
 
     pub fn translate(self: *Triangle, x: f32, y: f32, z: f32) void {
-        self.p[0][0] += x;
-        self.p[0][1] += y;
-        self.p[0][2] += z;
-
-        self.p[1][0] += x;
-        self.p[1][1] += y;
-        self.p[1][2] += z;
-
-        self.p[2][0] += x;
-        self.p[2][1] += y;
-        self.p[2][2] += z;
+        for (0..3) |i| {
+            self.p[i][0] += x;
+            self.p[i][1] += y;
+            self.p[i][2] += z;
+        }
     }
 
     pub fn multiply(self: *Triangle, x: f32, y: f32, z: f32) void {
-        self.p[0][0] *= x;
-        self.p[0][1] *= y;
-        self.p[0][2] *= z;
+        for (0..3) |i| {
+            self.p[i][0] *= x;
+            self.p[i][1] *= y;
+            self.p[i][2] *= z;
+        }
+    }
 
-        self.p[1][0] *= x;
-        self.p[1][1] *= y;
-        self.p[1][2] *= z;
-
-        self.p[2][0] *= x;
-        self.p[2][1] *= y;
-        self.p[2][2] *= z;
+    pub fn normalizeCoordinates(self: *Triangle) void {
+        for (0..3) |i| {
+            const w = self.p[i][3];
+            self.p[i][0] /= w;
+            self.p[i][1] /= w;
+            self.p[i][2] /= w;
+        }
     }
 
     pub fn calculateNormal(self: Triangle) math.Vec4 {
