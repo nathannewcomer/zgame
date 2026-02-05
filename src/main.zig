@@ -16,37 +16,12 @@ pub fn main() !void {
     const fov: f32 = 90.0;
     const fov_rad: f32 = 1.0 / @tan(fov * 0.5 / 180.0 * sdl.SDL_PI_F);
 
+    const camera: math.Vec4 = @splat(0.0);
+
     const proj_matrix = math.createProjection(aspect_ratio, fov_rad, near, far);
 
     var window: ?*sdl.SDL_Window = null;
     var renderer: ?*sdl.SDL_Renderer = null;
-
-    // Unit cube
-    const cube_mesh = [_]geometry.Triangle{
-        // South
-        .{ .p = .{ .{ 0.0, 0.0, 0.0, 1.0 }, .{ 0.0, 1.0, 0.0, 1.0 }, .{ 1.0, 1.0, 0.0, 1.0 } } },
-        .{ .p = .{ .{ 0.0, 0.0, 0.0, 1.0 }, .{ 1.0, 1.0, 0.0, 1.0 }, .{ 1.0, 0.0, 0.0, 1.0 } } },
-
-        // East
-        .{ .p = .{ .{ 1.0, 0.0, 0.0, 1.0 }, .{ 1.0, 1.0, 0.0, 1.0 }, .{ 1.0, 1.0, 1.0, 1.0 } } },
-        .{ .p = .{ .{ 1.0, 0.0, 0.0, 1.0 }, .{ 1.0, 1.0, 1.0, 1.0 }, .{ 1.0, 0.0, 1.0, 1.0 } } },
-
-        // Noth
-        .{ .p = .{ .{ 1.0, 0.0, 1.0, 1.0 }, .{ 1.0, 1.0, 1.0, 1.0 }, .{ 0.0, 1.0, 1.0, 1.0 } } },
-        .{ .p = .{ .{ 1.0, 0.0, 1.0, 1.0 }, .{ 0.0, 1.0, 1.0, 1.0 }, .{ 0.0, 0.0, 1.0, 1.0 } } },
-
-        // West
-        .{ .p = .{ .{ 0.0, 0.0, 1.0, 1.0 }, .{ 0.0, 1.0, 1.0, 1.0 }, .{ 0.0, 1.0, 0.0, 1.0 } } },
-        .{ .p = .{ .{ 0.0, 0.0, 1.0, 1.0 }, .{ 0.0, 1.0, 0.0, 1.0 }, .{ 0.0, 0.0, 0.0, 1.0 } } },
-
-        // Top
-        .{ .p = .{ .{ 0.0, 1.0, 0.0, 1.0 }, .{ 0.0, 1.0, 1.0, 1.0 }, .{ 1.0, 1.0, 1.0, 1.0 } } },
-        .{ .p = .{ .{ 0.0, 1.0, 0.0, 1.0 }, .{ 1.0, 1.0, 1.0, 1.0 }, .{ 1.0, 1.0, 0.0, 1.0 } } },
-
-        // Bottom
-        .{ .p = .{ .{ 1.0, 0.0, 1.0, 1.0 }, .{ 0.0, 0.0, 1.0, 1.0 }, .{ 0.0, 0.0, 0.0, 1.0 } } },
-        .{ .p = .{ .{ 1.0, 0.0, 1.0, 1.0 }, .{ 0.0, 0.0, 0.0, 1.0 }, .{ 1.0, 0.0, 0.0, 1.0 } } },
-    };
 
     if (!sdl.SDL_Init(sdl.SDL_INIT_VIDEO)) {
         const err = sdl.SDL_GetError();
@@ -68,6 +43,10 @@ pub fn main() !void {
     var f_theta: f32 = 0;
     var e: sdl.SDL_Event = undefined;
     var quit: bool = false;
+
+    // Load mesh
+    const allocator = std.heap.c_allocator;
+    const cube_mesh: geometry.Mesh = try geometry.loadMesh(allocator);
 
     // Main loop
     while (!quit) {
@@ -108,21 +87,21 @@ pub fn main() !void {
         rot_x_matrix.cols[2][2] = @cos(f_theta * 0.5);
         rot_x_matrix.cols[3][3] = 1.0;
 
-        for (cube_mesh) |tri| {
+        for (cube_mesh.triangles.items) |tri| {
             // Rotate in Z axis
             const tri_rotated_z = tri.matrixMultiply(rot_z_matrix);
 
             // Rotate in X axis
             var tri_rotated_xz = tri_rotated_z.matrixMultiply(rot_x_matrix);
 
-            //std.debug.print("Before ({d}, {d}, {d})\n", .{ tri_rotated_xz.p[0][0], tri_rotated_xz.p[0][1], tri_rotated_xz.p[0][2] });
             // Translate triangles
             tri_rotated_xz.translate(0.0, 0.0, 3.0);
-            //std.debug.print("After ({d}, {d}, {d})\n", .{ tri_rotated_xz.p[0][0], tri_rotated_xz.p[0][1], tri_rotated_xz.p[0][2] });
 
             const normal = tri_rotated_xz.calculateNormal();
 
-            if (normal[2] < 0.0) {
+            const dot = math.dot(normal, tri_rotated_xz.p[0] - camera);
+
+            if (dot < 0.0) {
                 // Project triangles in 3D space
                 var tri_projected = tri_rotated_xz.matrixMultiply(proj_matrix);
 

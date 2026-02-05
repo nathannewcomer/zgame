@@ -58,6 +58,13 @@ pub fn createProjection(aspect_ratio: f32, fov_rad: f32, near: f32, far: f32) Ma
     return proj_matrix;
 }
 
+pub fn dot(a: Vec4, b: Vec4) f32 {
+    const mul = a * b;
+    return @reduce(.Add, mul);
+}
+
+// ------------------------------- Tests -------------------------------
+
 test "multiplyVect: identity matrix" {
     const identity = Matrix4x4{
         .cols = .{
